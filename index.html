@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShadowHub v4.3 — Mirror #13</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background:#0a0a0a;
+      color:#00ff41;
+      font-family:'Share Tech Mono', monospace;
+      font-size:16px;
+      line-height:1.4;
+      padding:20px;
+    }
+
+    header { text-align:center; margin-bottom:30px; position:relative; }
+    h1 {
+      font-family:'VT323', monospace;
+      font-size:4.5rem;
+      color:#00ff41;
+      text-shadow:0 0 10px #00ff41, 0 0 30px #00aa30, 0 0 60px #006600;
+      letter-spacing:6px;
+      animation:glitch 4s infinite;
+    }
+
+    .status { color:#00cc00; margin:10px 0; font-size:1.3rem; }
+    .warning { color:#ff0044; font-weight:bold; margin:20px 0; text-align:center; }
+    .mirror-info { color:#888; font-size:0.9rem; margin-bottom:30px; }
+
+    table {
+      width:100%; max-width:1100px; margin:0 auto 40px;
+      border-collapse:collapse; background:#111; border:1px solid #00aa30;
+    }
+    th, td { padding:14px; border:1px solid #003300; text-align:left; }
+    th { background:#002200; color:#00ff80; text-transform:uppercase; font-size:0.95rem; }
+    tr:hover { background:#1a1a1a; }
+
+    .price { color:#00ffaa; font-weight:bold; }
+    .vendor { color:#aaa; }
+    .online { color:#00ff41; }
+    .offline { color:#555; }
+
+    .btn {
+      display:inline-block; background:#002200; color:#00ff41;
+      border:2px solid #00aa30; padding:10px 20px; margin:8px;
+      text-decoration:none; font-weight:bold; transition:all 0.15s;
+    }
+    .btn:hover { background:#003300; box-shadow:0 0 15px #00ff41; }
+
+    footer { text-align:center; color:#444; margin-top:60px; font-size:0.85rem; }
+
+    .ascii {
+      font-family:'VT323', monospace; font-size:1.1rem;
+      white-space:pre; color:#006600; margin:20px auto;
+      text-align:center; max-width:90%;
+    }
+
+    @keyframes glitch {
+      0%   { text-shadow:2px 2px #ff0044, -2px -2px #00ff41; }
+      20%  { text-shadow:-2px 2px #00ffff, 2px -2px #ff00aa; }
+      40%  { text-shadow:2px -2px #ffff00, -2px 2px #00ff00; }
+      60%  { text-shadow:-4px 0 #ff0044, 4px 0 #00ffff; }
+      80%  { text-shadow:0 -4px #00ff41, 0 4px #ff00aa; }
+      100% { text-shadow:2px 2px #ff0044, -2px -2px #00ff41; }
+    }
+
+    .blink { animation:blink 1.2s step-end infinite; }
+    @keyframes blink { 50% { opacity:0; } }
+
+    /* Closed overlay */
+    #closed-screen {
+      position:fixed; inset:0; background:#000;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      z-index:9999; font-family:'VT323', monospace; color:#ff0044;
+      font-size:2.8rem; text-align:center; padding:20px;
+    }
+    #closed-screen.hidden { display:none; }
+
+    #timer { font-size:3.5rem; color:#00ff41; margin:30px 0; }
+    #closed-msg { max-width:800px; line-height:1.3; }
+
+    /* Login screen */
+    #login-screen {
+      position:fixed; inset:0; background:#000;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      z-index:10000; font-family:'VT323', monospace; color:#00ff41;
+      font-size:2.2rem; text-align:center; padding:20px;
+    }
+    #login-screen.hidden { display:none; }
+
+    #login-prompt { margin-bottom:20px; }
+    #access-code { 
+      background:#111; color:#00ff41; border:2px solid #00aa30;
+      font-family:'Share Tech Mono', monospace; font-size:1.8rem;
+      padding:10px; width:200px; text-align:center;
+    }
+    #submit-code { 
+      background:#002200; color:#00ff41; border:2px solid #00aa30;
+      padding:12px 24px; font-size:1.6rem; cursor:pointer;
+    }
+    #submit-code:hover { background:#003300; }
+    #error-msg { color:#ff0044; margin-top:15px; font-size:1.4rem; }
+
+    /* Rules overlay */
+    #rules-screen {
+      position:fixed; inset:0; background:#000;
+      display:flex; flex-direction:column; justify-content:flex-start; align-items:center;
+      z-index:9998; font-family:'VT323', monospace; color:#ff0044;
+      font-size:1.6rem; text-align:left; padding:40px 20px; overflow-y:auto;
+    }
+    #rules-screen.hidden { display:none; }
+
+    #rules-content { max-width:900px; line-height:1.5; }
+    #rules-content h2 { font-size:2.5rem; color:#ff0044; text-shadow:0 0 10px #ff0044; margin:30px 0 15px; }
+    #rules-content ul { list-style-type: none; }
+    #rules-content li { margin:15px 0; position:relative; padding-left:25px; }
+    #rules-content li:before { content: '☠'; position:absolute; left:0; color:#ff0044; }
+    #rules-content .scary { color:#ff0044; font-weight:bold; animation:blink 0.8s infinite; }
+    #close-rules { 
+      position:fixed; top:20px; right:20px; background:#002200; color:#00ff41;
+      border:2px solid #ff0044; padding:10px 20px; cursor:pointer; font-size:1.4rem;
+    }
+    #close-rules:hover { background:#330000; }
+
+    .scary-ascii {
+      font-family:'VT323', monospace; font-size:1.2rem;
+      white-space:pre; color:#ff0044; margin:40px 0; text-align:center;
+      animation:glitch 2s infinite;
+    }
+  </style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div id="login-prompt">ENTER ACCESS CODE TO ENTER SHADOWHUB</div>
+  <input type="password" id="access-code" maxlength="3" placeholder="***" />
+  <button id="submit-code">ENTER</button>
+  <div id="error-msg"></div>
+</div>
+
+<div id="closed-screen" class="hidden">
+  <div id="closed-msg">
+    █ SHADOWHUB OFFLINE █<br><br>
+    Technical maintenance from 00:00 to 01:00 (Kyiv time)<br>
+    Market will be back online at 01:00
+  </div>
+  <div id="timer">--:--:--</div>
+</div>
+
+<div id="rules-screen" class="hidden">
+  <button id="close-rules">CLOSE [X]</button>
+  <div id="rules-content">
+    <h2>SHADOWHUB RULES — BREAK THEM AND YOU DIE</h2>
+    <div class="scary-ascii">
+      .     .       .  .   . .   .   . .    +  .
+        .     .  :     .    .. :. .___---------___.
+             .  .   .    .  :.:. _".^ .^ ^.  '.. :"-_. .
+          .  :       .  .  .:../:            . .^  :.:\.
+              .   . :: +. :.:/: .   .    .        . . .:\
+       .  :    .     . _ :::/:               .  ^ .  . .:\
+        .. . .   . - : :.:./.                           .:|
+      .      .     . :..|:                    .        .  .|
+        .       . : : :_     >-   : : : :. :                 .|
+           .    .  : .  . :     .   : .... .: :::: .           .|
+      .         .   . :: .| .     .   . ::::: .  .      |
+         .    .     . .   :: .  .     : . . .    .      .      ..
+      .. .    .       .  :.. .  .     :.. .    ..      .  .   ...
+                . . .    .: .:::     .: .::::  .: . . .      .. :  .
+     . .     . .  .. :  .::: .: :::: .:. ::::  ::: :::  .  .   :
+    ................................................................
+    </div>
+    <p class="scary">You have entered the Shadows. There is no mercy here. These rules are written in the blood of those who broke them. Read carefully — your life depends on it. We are watching. Always.</p>
+    
+    <ul>
+      <li>NO SCAMMING: Scam a buyer or vendor — we will find you. Your IP, your messages, everything is encrypted… but we hold the keys. Violators disappear. Forever. <span class="scary">Their bodies feed the rats in the sewers.</span></li>
+      <li>PGP IS MANDATORY: Every message, every deal — through PGP. No key = instant ban. A ban here means your data goes straight to the feds. <span class="scary">They will come at night. With knives.</span></li>
+      <li>ESCROW ONLY: All trades go through market escrow. Try to bypass — your crypto burns. Along with your future. <span class="scary">We have hackers who will break your soul.</span></li>
+      <li>NO DOXXING: Never reveal anyone’s real info. Do it — we reveal yours. Address, photos, family. <span class="scary">Your loved ones will hear knocking at 3 a.m.</span></li>
+      <li>NO CP: Even mentioning it = instant permanent ban. We are not monsters… but for this… <span class="scary">you become food for real monsters underground.</span></li>
+      <li>NO MASS DESTRUCTION / TERROR: Don’t sell WMDs or terror plans. Try it — <span class="scary">we become your terror. Your body will be found in the river. Without eyes.</span></li>
+      <li>MINIMUM FEEDBACK: Vendors below 4.0 rating get deleted. Fake reviews = ban. <span class="scary">Fake = real death in the digital world.</span></li>
+      <li>TRUST NO ONE: Not even admins. Verify PGP every single time. Something feels off — run. <span class="scary">But where to? We are everywhere.</span></li>
+      <li>NO CLEARNET LOGINS: Tor only. We detect VPN/proxy — ban. <span class="scary">And we send your logs to the cops. With your face photo attached.</span></li>
+      <li>DISPUTES: Open a dispute if needed. Admin decides within 48 hours. Disagree? <span class="scary">Your fate is eternal silence.</span></li>
+    </ul>
+
+    <div class="scary-ascii">
+      __          ___       _    _       _____ _      _____ 
+     /_ |        / (_)     | |  | |     / ____| |    |_   _|
+      | |  ___  |/_|  ___  | |  | | ___| |    | |      | |  
+      | | / _ \   | | / __| | |  | |/ _ \ |    | |      | |  
+      | || (_) |  | || (__  | |__| |  __/ |____| |____ _| |_ 
+      |_| \___/   |_| \___|  \____/ \___|\_____|______|_____|
+    </div>
+
+    <p class="scary">Remember: ShadowHub is not a game. This is reality where mistakes cost lives. Break the rules — we won’t warn you. You will simply… vanish. Now go. And pray we are not watching you right now.</p>
+  </div>
+</div>
+
+<div id="main-content" class="hidden">
+  <header>
+    <h1>SHADOWHUB</h1>
+    <div class="status">Version 4.3 • Mirror #13 • <span class="blink">ONLINE</span></div>
+    <div class="mirror-info">
+      Last mirror update: Feb 03, 2026 14:21 UTC • PGP: E4F9•A2B1•C7D3•F8E2•... • Active mirrors: 7/10
+    </div>
+  </header>
+
+  <div class="warning">
+    [!] JavaScript disabled = maximum security. Never enable JS on real darknet sites. Use Tails OS, Whonix or Qubes. PGP for everything. Trust no one. Verify always.
+  </div>
+
+  <div class="ascii">
+     ███████╗██╗  ██╗ █████╗ ██████╗  ██████╗ ██╗    ██╗    ██╗   ██╗██╗  ██╗██╗   ██╗██████╗ 
+     ██╔════╝██║  ██║██╔══██╗██╔══██╗██╔═══██╗██║    ██║    ██║   ██║██║  ██║██║   ██║██╔══██╗
+     ███████╗███████║███████║██║  ██║██║   ██║██║ █╗ ██║    ██║   ██║███████║██║   ██║██████╔╝
+     ╚════██║██╔══██║██╔══██║██║  ██║██║   ██║██║███╗██║    ╚██╗ ██╔╝██╔══██║██║   ██║██╔══██╗
+     ███████║██║  ██║██║  ██║██████╔╝╚██████╔╝╚███╔███╔╝     ╚████╔╝ ██║  ██║╚██████╔╝██████╔╝
+     ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝  ╚══╝╚══╝       ╚═══╝  ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ 
+  </div>
+
+  <div class="warning" style="font-size:1.1rem; margin:30px 0;">
+    [!] WARNING: This market is a SIMULATION only. All items are fake. Access code: 666 (for testing purposes). Do NOT use for real activities.
+  </div>
+
+  <table id="market-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Category</th>
+        <th>Vendor</th>
+        <th>Price</th>
+        <th>Rating / Feedback</th>
+        <th>Availability</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Premium Residential Proxies • 100 IPs • Rotating • High Speed</td>
+        <td>Proxies / SOCKS5 / VPN</td>
+        <td class="vendor online">GhostProxy (online)</td>
+        <td class="price">0.085 BTC (~$4500)</td>
+        <td>4.92 / 1289 reviews</td>
+        <td>In stock: 500+ units</td>
+        <td><a href="#" class="btn">Buy</a></td>
+      </tr>
+      <tr>
+        <td>Cocaine • 1g • 98% Purity • EU Stealth Shipping • Vacuum Sealed</td>
+        <td>Stimulants / Narcotics</td>
+        <td class="vendor online">SnowKing (online)</td>
+        <td class="price">€78 (~0.0012 BTC)</td>
+        <td>4.87 / 3421 reviews</td>
+        <td>In stock: 150g</td>
+        <td><a href="#" class="btn">Buy</a></td>
+      </tr>
+      <tr>
+        <td>Fullz • USA • CC+CVV+Name+Addr+SSN+DOB • Fresh 2026 Dumps</td>
+        <td>Carding / Dumps / Fullz</td>
+        <td class="vendor online">DumpLord (online)</td>
+        <td class="price">$12–18 / piece (bulk discounts)</td>
+        <td>4.65 / 987 reviews</td>
+        <td>In stock: 10k+ units</td>
+        <td><a href="#" class="btn">Buy</a></td>
+      </tr>
+      <tr>
+        <td>Bitcoin Mixer • 3–10 Confirmations • No Logs • Tumbling Service</td>
+        <td>Mixers / Laundry / Crypto</td>
+        <td class="vendor online">CryptoWasher (online)</td>
+        <td class="price">1.8% fee + 0.0005 BTC min</td>
+        <td>4.95 / 5642 reviews</td>
+        <td>Service online</td>
+        <td><a href="#" class="btn">Mix</a></td>
+      </tr>
+      <tr>
+        <td>Fentanyl Powder • 500mg • Lab Tested • Worldwide Shipping</td>
+        <td>Opioids / Narcotics</td>
+        <td class="vendor offline">DarkChemist (offline)</td>
+        <td class="price">---</td>
+        <td>4.71 / 421 reviews</td>
+        <td>Temporarily unavailable</td>
+        <td><a href="#" class="btn">---</a></td>
+      </tr>
+      <tr>
+        <td>Hacking Toolkit • RAT + Keylogger + Exploits • Windows/Mac</td>
+        <td>Hacking / Software / Exploits</td>
+        <td class="vendor online">CodePhantom (online)</td>
+        <td class="price">0.02 BTC (~$1100)</td>
+        <td>4.89 / 756 reviews</td>
+        <td>In stock: ∞ (digital)</td>
+        <td><a href="#" class="btn">Buy</a></td>
+      </tr>
+      <tr>
+        <td>Fake Passport • EU Quality • Holograms + UV • Custom Data</td>
+        <td>Documents / Forgeries / ID</td>
+        <td class="vendor online">ForgeMaster (online)</td>
+        <td class="price">€1500 (~0.023 BTC)</td>
+        <td>4.82 / 1892 reviews</td>
+        <td>Delivery: 7–14 days</td>
+        <td><a href="#" class="btn">Order</a></td>
+      </tr>
+      <tr>
+        <td>MDMA Crystals • 5g • 84%+ Purity • NL Vendor</td>
+        <td>Ecstasy / Psychedelics</td>
+        <td class="vendor online">EcstasyEmpire (online)</td>
+        <td class="price">€45 (~0.0007 BTC)</td>
+        <td>4.91 / 2345 reviews</td>
+        <td>In stock: 1kg+</td>
+        <td><a href="#" class="btn">Buy</a></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="text-align:center; margin:60px 0;">
+    <a href="#" class="btn" style="font-size:1.4rem; padding:18px 40px;">Login / Register (PGP required)</a>
+    <a href="#" id="show-rules" class="btn" style="font-size:1.4rem; padding:18px 40px;">Market Rules & FAQ</a>
+    <a href="#" class="btn" style="font-size:1.4rem; padding:18px 40px;">Vendor & Admin PGP Keys</a>
+    <a href="#" class="btn" style="font-size:1.4rem; padding:18px 40px;">Forum / Disputes</a>
+  </div>
+
+  <footer>
+    Use Tor Browser Bundle • Never use clearnet proxies • No JavaScript on production • 2FA with Yubikey only • PGP encryption mandatory<br>
+    ShadowHub — 2025–2026 • No exit scam guarantee (escrow system) • Mirror status: ███████ 100% • Uptime: 99.98%
+  </footer>
+</div>
+
+<script>
+// Kyiv timezone offset (UTC+3 for simulation — change to 2 if winter time applies)
+const TIMEZONE_OFFSET = 3;
+
+function isMarketClosed() {
+  const now = new Date();
+  const utcHours = now.getUTCHours();
+  const kyivHours = (utcHours + TIMEZONE_OFFSET) % 24;
+  return kyivHours === 0; // closed 00:00–00:59
+}
+
+function getTimeToOpen() {
+  const now = new Date();
+  const msInHour = 3600000;
+  let target = new Date(now);
+  target.setUTCHours(22 - (TIMEZONE_OFFSET - 3), 0, 0, 0); // adjust for 01:00 Kyiv
+  if (target < now) target.setUTCDate(target.getUTCDate() + 1);
+  const diff = target - now;
+  const hours = Math.floor(diff / msInHour);
+  const minutes = Math.floor((diff % msInHour) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+  return `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+}
+
+function updatePage() {
+  const closedEl = document.getElementById('closed-screen');
+  const mainContent = document.getElementById('main-content');
+  const timerEl = document.getElementById('timer');
+
+  if (isMarketClosed()) {
+    closedEl.classList.remove('hidden');
+    mainContent.style.display = 'none';
+    timerEl.textContent = getTimeToOpen();
+  } else {
+    closedEl.classList.add('hidden');
+    mainContent.style.display = 'block';
+  }
+}
+
+setInterval(updatePage, 5000);
+updatePage();
+
+// Access code 666 login
+const loginScreen = document.getElementById('login-screen');
+const accessCodeInput = document.getElementById('access-code');
+const submitBtn = document.getElementById('submit-code');
+const errorMsg = document.getElementById('error-msg');
+const mainContent = document.getElementById('main-content');
+
+submitBtn.addEventListener('click', () => {
+  const code = accessCodeInput.value.trim();
+  if (code === '666') {
+    loginScreen.classList.add('hidden');
+    mainContent.classList.remove('hidden');
+    updatePage();
+  } else {
+    errorMsg.textContent = 'Invalid access code. Try again.';
+    accessCodeInput.value = '';
+  }
+});
+
+accessCodeInput.addEventListener('keyup', (e) => {
+  if (e.key === 'Enter') submitBtn.click();
+});
+
+// Show rules
+const rulesScreen = document.getElementById('rules-screen');
+const showRulesBtn = document.getElementById('show-rules');
+const closeRulesBtn = document.getElementById('close-rules');
+
+showRulesBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  rulesScreen.classList.remove('hidden');
+});
+
+closeRulesBtn.addEventListener('click', () => {
+  rulesScreen.classList.add('hidden');
+});
+</script>
+
+</body>
+</html>
